@@ -1,67 +1,22 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const eventOrganizerSchema = new mongoose.Schema({
-    firstName: {
-        type: String,
-        required: true,
-        trim: true,
-    },
-    lastName: {
-        type: String,
-        required: true,
-        trim: true,
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true,
-        trim: true,
-        validate: {
-            validator: function (v) {
-                return /^\S+@\S+\.\S+$/.test(v); 
-            },
-            message: props => `${props.value} is not a valid email!`,
-        },
-    },
-    phone: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        validate: {
-            validator: function (v) {
-                return /^\d{10,15}$/.test(v); 
-            },
-            message: props => `${props.value} is not a valid phone number!`,
-        },
-    },
-    password: {
-        type: String,
-        required: true,
-        minlength: 8, 
-        select: false, 
-    },
-    eventName: {
-        type: String,
-        required: false, 
-        trim: true,
-    },
-    address: {
-        type: String,
-        required: false,
-        trim: true,
-    },
-    verified: {
-        type: Boolean,
-        default: false, 
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-});
+const generateVerificationCode = () =>
+  Math.floor(100000 + Math.random() * 900000).toString();
 
-const EventOrganizer = mongoose.model('EventOrganizer', eventOrganizerSchema);
+const EventOrganizerSchema = new mongoose.Schema(
+  {
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    phone: { type: String, required: true },
+    password: { type: String, required: true },
+    organizationName: { type: String, required: true },
+    address: { type: String, required: true },
+    isVerified: { type: Boolean, default: false },
+    verificationCode: { type: String, default: generateVerificationCode }, 
+  },
+  { timestamps: true }
+);
 
+const EventOrganizer = mongoose.model("EventOrganizer", EventOrganizerSchema);
 module.exports = EventOrganizer;
