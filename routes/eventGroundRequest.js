@@ -5,12 +5,9 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-
 router.post("/event-requests", authMiddleware, async (req, res) => {
     try {
-        const { eventGroundName, eventName, eventDescription, eventDates, expectedAttendance } = req.body;
-
-       
+        const { eventGround, eventDates, expectedAttendees, additionalNotes } = req.body;
 
         if (!Array.isArray(eventDates) || eventDates.length === 0) {
             return res.status(400).json({ message: "Event dates are required and must be an array" });
@@ -18,20 +15,17 @@ router.post("/event-requests", authMiddleware, async (req, res) => {
 
         const formattedEventDates = eventDates.map(date => new Date(date));
 
-        console.log("Formatted eventDates:", formattedEventDates);
-
-        const eventGround = await EventGround.findOne({ name: eventGroundName });
-        if (!eventGround) {
+        const foundEventGround = await EventGround.findOne({ name: eventGround });
+        if (!foundEventGround) {
             return res.status(404).json({ message: "Event ground not found" });
         }
 
         const eventRequest = new EventRequest({
             organizer: req.user._id,
-            eventGround: eventGround._id,
-            eventName,
-            eventDescription,
-            eventDates: formattedEventDates, 
-            expectedAttendance
+            eventGround: foundEventGround._id,
+            eventDates: formattedEventDates,
+            expectedAttendees,
+            additionalNotes
         });
 
         await eventRequest.save();
@@ -42,11 +36,10 @@ router.post("/event-requests", authMiddleware, async (req, res) => {
     }
 });
 
-
 router.get("/event-requests", async (req, res) => {
     try {
         const eventRequests = await EventRequest.find()
-            .populate("organizer", "fname lname email")
+            .populate("organizer", "firstName lastName email")
             .populate("eventGround", "name location");
 
         res.status(200).json(eventRequests);
@@ -59,15 +52,14 @@ router.get("/event-requests", async (req, res) => {
 router.get("/event-requests/ground/name/:eventGroundName", async (req, res) => {
     try {
         const { eventGroundName } = req.params;
-        const eventGround = await EventGround.findOne({ name: eventGroundName });
+        const foundEventGround = await EventGround.findOne({ name: eventGroundName });
 
-        if (!eventGround) {
+        if (!foundEventGround) {
             return res.status(404).json({ message: "Event ground not found" });
         }
 
-       
-        const eventRequests = await EventRequest.find({ eventGround: eventGround._id })
-            .populate("organizer", "fname lname email")
+        const eventRequests = await EventRequest.find({ eventGround: foundEventGround._id })
+            .populate("organizer", "firstName lastName email")
             .populate("eventGround", "name location");
 
         if (!eventRequests.length) {
@@ -81,11 +73,9 @@ router.get("/event-requests/ground/name/:eventGroundName", async (req, res) => {
     }
 });
 
-
-
 router.patch("/event-requests/:id", authMiddleware, async (req, res) => {
     try {
-        const { status } = req.body;
+        const { status, additionalNotes } = req.body;
         const validStatuses = ["Pending", "Approved", "Rejected"];
 
         if (!validStatuses.includes(status)) {
@@ -94,7 +84,7 @@ router.patch("/event-requests/:id", authMiddleware, async (req, res) => {
 
         const eventRequest = await EventRequest.findByIdAndUpdate(
             req.params.id,
-            { status },
+            { status, additionalNotes },
             { new: true, runValidators: true }
         );
 
@@ -108,7 +98,6 @@ router.patch("/event-requests/:id", authMiddleware, async (req, res) => {
         res.status(500).json({ message: "Server error", error: err.message });
     }
 });
-
 
 router.delete("/event-requests/:id", authMiddleware, async (req, res) => {
     try {

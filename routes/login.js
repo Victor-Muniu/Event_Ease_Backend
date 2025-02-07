@@ -91,25 +91,24 @@ router.post("/login_staff", async (req, res) => {
   }
 });
 
-
 router.get('/current-user', authMiddleware, async (req, res) => {
   try {
-      const user = await EventOrganizer.findOne({ emp_no: req.user.emp_no }); 
-      if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-      }
+    const user = await EventOrganizer.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-      res.json({
-          user: {
-              fname: user.firstName,
-              lname: user.lastName,
-              email: user.email,
-              id: user._id
-          }
-      });
+    res.json({
+      user: {
+        fname: user.firstName,
+        lname: user.lastName,
+        email: user.email,
+        id: user._id
+      }
+    });
   } catch (err) {
-      console.error(err.message);
-      res.status(500).json({ message: 'Server error' });
+    console.error(err.message);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

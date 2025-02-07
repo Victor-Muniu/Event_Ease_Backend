@@ -3,41 +3,40 @@ const mongoose = require("mongoose");
 const eventRequestSchema = new mongoose.Schema({
     organizer: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "EventOrganizer", 
-        required: true
+        ref: "EventOrganizer",
+        required: true,
     },
     eventGround: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "EventGround", 
-        required: true
-    },
-    eventName: {
-        type: String,
-        required: true
-    },
-    eventDescription: {
-        type: String,
-        required: true
+        ref: "EventGround",
+        required: true,
     },
     eventDates: [
         {
             type: Date,
-            required: true
-        }
+            required: true,
+        },
     ],
-    expectedAttendance: {
+    requestSubmissionDate: {
+        type: Date,
+        default: Date.now,
+        immutable: true,
+    },
+    expectedAttendees: {
         type: Number,
-        required: true
+        required: true,
+        min: 1,
     },
     status: {
         type: String,
         enum: ["Pending", "Approved", "Rejected"],
-        default: "Pending"
+        default: "Pending",
     },
-    requestDate: {
-        type: Date,
-        default: Date.now
-    }
+    additionalNotes: {
+        type: String,
+        trim: true,
+        maxlength: 500,
+    },
 });
 
 const EventRequest = mongoose.model("EventRequest", eventRequestSchema);

@@ -5,7 +5,6 @@ const cookieParser = require("cookie-parser");
 
 const StaffRouter = require("./routes/staffRouter");
 const EventGroundRouter = require("./routes/eventGroundsRouter");
-const AssetRouter = require("./routes/assetsRouter")
 const EventOrganizerRouter = require("./routes/eventOrganizerRouter")
 const LoginRouter = require('./routes/login')
 const EventsRouter = require('./routes/eventsRouter')
@@ -13,6 +12,7 @@ const UserRouter = require('./routes/userRouter')
 const EventsGroundsRequest = require('./routes/eventGroundRequest')
 const EventResponseRouter = require('./routes/eventsResponseRouter')
 const TicketsRouter = require('./routes/ticketsRouter')
+const depositRouter = require('./routes/depositRouter')
 const app = express();
 app.use(express.json());
 app.use(
@@ -32,7 +32,6 @@ mongoose
 
 app.use("", StaffRouter);
 app.use("", EventGroundRouter)
-app.use("", AssetRouter)
 app.use("", EventOrganizerRouter)
 app.use("", LoginRouter)
 app.use("",EventsRouter)
@@ -40,6 +39,7 @@ app.use("", UserRouter)
 app.use("", EventsGroundsRequest)
 app.use("", EventResponseRouter)
 app.use("", TicketsRouter)
+app.use("", depositRouter)
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

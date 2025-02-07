@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const EventGround = require('./eventGround'); 
+const EventRequest = require('../models/eventGroundRequest');
+const EventGround = require('../models/eventGround');
 
 const responseSchema = new mongoose.Schema({
     eventRequest: {
@@ -21,26 +22,82 @@ const responseSchema = new mongoose.Schema({
         required: true,
         unique: true,
         default: function() {
-            // Generate a unique quotation number (e.g., "QTN-XXXX")
             return 'QTN-' + Math.floor(1000 + Math.random() * 9000);
         }
     },
     totalPrice: {
         type: Number
     },
+    paymentStatus: {
+        type: String,
+        enum: ['Pending', 'Deposit Paid', 'Fully Paid'],
+        default: 'Pending'
+    }
 }, { timestamps: true });
 
-// Method to calculate the total price for the event response
-responseSchema.methods.calculateTotalPrice = function(eventRequest) {
-    const eventGround = eventRequest.eventGround;
 
-    // Calculate the price based on the number of event days
-    const days = eventRequest.eventDates.length;
-    const pricePerDay = eventGround.pricePerDay;
-    
-    return pricePerDay * days;
+responseSchema.methods.calculateTotalPrice = async function() {
+    try {
+        const eventRequest = await EventRequest.findById(this.eventRequest).populate('eventGround');
+        if (!eventRequest || !eventRequest.eventGround) {
+            throw new Error('Event request or event ground not found');
+        }
+
+        const eventGround = eventRequest.eventGround;
+        const days = eventRequest.eventDates.length;
+        return eventGround.pricePerDay * days;
+    } catch (error) {
+        throw new Error(error.message);
+    }
 };
 
+responseSchema.methods.generateResponseMessage = async function() {
+    try {
+        const eventRequest = await EventRequest.findById(this.eventRequest).populate('eventGround');
+        if (!eventRequest || !eventRequest.eventGround) {
+            throw new Error('Event request or event ground not found');
+        }
+
+        const eventGround = eventRequest.eventGround;
+        const days = eventRequest.eventDates.length;
+        const totalPrice = await this.calculateTotalPrice();
+
+        const message = `
+            Dear ${eventRequest.organizer.firstName} ${eventRequest.organizer.lastName},
+
+            Thank you for your request to book the event space at ${eventGround.name}. We are pleased to provide the following quotation for your consideration:
+
+            Event Details:
+            - Event Dates: ${eventRequest.eventDates.join(', ')}
+            - Expected Attendees: ${eventRequest.expectedAttendees}
+            - Additional Notes: ${eventRequest.additionalNotes || 'N/A'}
+
+            Event Ground Details:
+            - Venue: ${eventGround.name}
+            - Location: ${eventGround.location}
+            - Price Per Day: ${eventGround.pricePerDay} USD
+
+            Total Days: ${days}
+            Total Price: ${totalPrice} USD
+
+            Payment Status: ${this.paymentStatus}
+
+            Terms and Conditions:
+            ${this.termsAndConditions || 'Please confirm your booking within 7 days.'}
+
+            Should you have any questions or wish to proceed with this quotation, please do not hesitate to contact us.
+
+            Best regards,
+            ${this.respondedBy.firstName} ${this.respondedBy.lastName}
+            Event Manager
+            Event Coordination Team
+        `;
+
+        return message;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
 
 const EventResponse = mongoose.model('EventResponse', responseSchema);
 module.exports = EventResponse;

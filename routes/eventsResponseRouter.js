@@ -1,105 +1,109 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const EventResponse = require('../models/eventsResponse');
 const EventRequest = require('../models/eventGroundRequest');
-
+const EventGround = require('../models/eventGround');
 const authMiddleware = require('../middleware/staffMiddleware');
 
 const router = express.Router();
 
-
-
-router.post('/event-responses', authMiddleware, async (req, res) => {
+router.post('/responses', authMiddleware, async (req, res) => {
     try {
-        const { eventRequestId, responseMessage } = req.body;
+        const { eventRequest, termsAndConditions } = req.body;
+        const respondedBy = req.user.id;
 
-        const eventRequest = await EventRequest.findById(eventRequestId).populate('eventGround');
-        if (!eventRequest) {
-            return res.status(404).json({ message: "Event request not found" });
+        const eventRequestDoc = await EventRequest.findById(eventRequest).populate('eventGround');
+        if (!eventRequestDoc || !eventRequestDoc.eventGround) {
+            return res.status(404).json({ message: 'Event request or event ground not found' });
         }
 
-        const response = new EventResponse({
-            eventRequest: eventRequestId,
-            responseMessage,
-            respondedBy: req.user._id
+        const eventGround = eventRequestDoc.eventGround;
+        const days = eventRequestDoc.eventDates.length;
+
+        const totalPrice = eventGround.pricePerDay * days;
+
+        const eventResponse = new EventResponse({
+            eventRequest,
+            respondedBy,
+            termsAndConditions,
+            totalPrice
         });
 
-        const totalPrice = response.calculateTotalPrice(eventRequest);
-        response.totalPrice = totalPrice;
+        const formalMessage = await eventResponse.generateResponseMessage();
 
-        await response.save();
-       
-        res.status(201).json({
-            message: "Response created successfully",
-            response
-        });
+        eventResponse.responseMessage = formalMessage;
+        await eventResponse.save();
 
-    } catch (err) {
-        console.error("Error creating response:", err);
-        res.status(500).json({ message: "Server error", error: err.message });
+        res.status(201).json(eventResponse);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
-
-router.get('/event-responses', async (req, res) => {
+router.get('/responses', async (req, res) => {
     try {
-        const responses = await EventResponse.find()
-            .populate('eventRequest')
-            .populate('respondedBy', 'fname lname role')
-            .exec();
-        res.status(200).json({ responses });
-    } catch (err) {
-        console.error("Error fetching responses:", err);
-        res.status(500).json({ message: "Server error", error: err.message });
+        const responses = await EventResponse.find().populate('eventRequest respondedBy');
+        res.json(responses);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
-router.get('/event-responses/:id', async (req, res) => {
+router.get('/responses/:id', async (req, res) => {
     try {
-        const response = await EventResponse.findById(req.params.id)
-            .populate('eventRequest')
-            .populate('respondedBy', 'fname lname role');
-        
+        const response = await EventResponse.findById(req.params.id).populate('eventRequest respondedBy');
         if (!response) {
-            return res.status(404).json({ message: "Response not found" });
+            return res.status(404).json({ message: 'Response not found' });
         }
-        res.status(200).json({ response });
-    } catch (err) {
-        console.error("Error fetching response:", err);
-        res.status(500).json({ message: "Server error", error: err.message });
+        res.json(response);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
-router.patch('/event-responses/:id', authMiddleware, async (req, res) => {
+router.patch('/responses/:id', async (req, res) => {
     try {
-        const updates = req.body;
-        const response = await EventResponse.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true })
-            .populate('eventRequest')
-            .populate('respondedBy', 'fname lname role');
-        
-        if (!response) {
-            return res.status(404).json({ message: "Response not found" });
+        const { termsAndConditions } = req.body;
+
+        const updatedResponse = await EventResponse.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+        if (!updatedResponse) {
+            return res.status(404).json({ message: 'Response not found' });
         }
-        res.status(200).json({
-            message: "Response updated successfully",
-            response
-        });
-    } catch (err) {
-        console.error("Error updating response:", err);
-        res.status(500).json({ message: "Server error", error: err.message });
+
+        const eventRequestDoc = await EventRequest.findById(updatedResponse.eventRequest).populate('eventGround');
+        if (!eventRequestDoc || !eventRequestDoc.eventGround) {
+            return res.status(404).json({ message: 'Event request or event ground not found' });
+        }
+
+        const eventGround = eventRequestDoc.eventGround;
+        const days = eventRequestDoc.eventDates.length;
+        const totalPrice = eventGround.pricePerDay * days;
+
+        updatedResponse.totalPrice = totalPrice;
+        updatedResponse.termsAndConditions = termsAndConditions;
+
+        const formalMessage = await updatedResponse.generateResponseMessage();
+        updatedResponse.responseMessage = formalMessage;
+
+        await updatedResponse.save();
+
+        res.json(updatedResponse);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
 
-router.delete('/event-responses/:id', authMiddleware, async (req, res) => {
+router.delete('/responses/:id', async (req, res) => {
     try {
-        const response = await EventResponse.findByIdAndDelete(req.params.id);
-        if (!response) {
-            return res.status(404).json({ message: "Response not found" });
+        const deletedResponse = await EventResponse.findByIdAndDelete(req.params.id);
+        if (!deletedResponse) {
+            return res.status(404).json({ message: 'Response not found' });
         }
-        res.status(200).json({ message: "Response deleted successfully" });
-    } catch (err) {
-        console.error("Error deleting response:", err);
-        res.status(500).json({ message: "Server error", error: err.message });
+        res.json({ message: 'Response deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
