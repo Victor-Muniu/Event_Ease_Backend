@@ -10,7 +10,6 @@ const depositSchema = new mongoose.Schema(
     amountPaid: {
       type: Number,
       required: true,
-      min: 1,
     },
     paymentMethod: {
       type: String,
