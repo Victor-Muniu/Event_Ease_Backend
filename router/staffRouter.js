@@ -1,11 +1,12 @@
 const express = require("express");
-const Staff = require("../models/staff");
+const Staff = require("../modules/staff");
 const router = express.Router();
 
 
-router.post("/staff",  async (req, res) => {
+
+router.post("/staff", async (req, res) => {
     try {
-        const { emp_no, fname, lname, email, phone, department, role, password, dateOfJoining } = req.body;
+        const { emp_no, fname, lname, email, phone, department, role, password} = req.body;
 
         const existingStaff = await Staff.findOne({ $or: [{ emp_no }, { email }] });
         if (existingStaff) {
@@ -21,7 +22,7 @@ router.post("/staff",  async (req, res) => {
             department,
             role,
             password, 
-            dateOfJoining,
+           
         });
 
         await staff.save();
@@ -32,8 +33,7 @@ router.post("/staff",  async (req, res) => {
     }
 });
 
-
-router.get("/staff",  async (req, res) => {
+router.get("/staff", async (req, res) => {
     try {
         const staffMembers = await Staff.find();
         res.status(200).json(staffMembers);
@@ -43,7 +43,7 @@ router.get("/staff",  async (req, res) => {
     }
 });
 
-
+// Get Single Staff Member
 router.get("/staff/:id", async (req, res) => {
     try {
         const staff = await Staff.findById(req.params.id);
@@ -57,7 +57,7 @@ router.get("/staff/:id", async (req, res) => {
     }
 });
 
-
+// Update Staff Member
 router.patch("/staff/:id", async (req, res) => {
     try {
         const updates = req.body;
@@ -74,6 +74,7 @@ router.patch("/staff/:id", async (req, res) => {
     }
 });
 
+// Delete Staff Member
 router.delete("/staff/:id", async (req, res) => {
     try {
         const staff = await Staff.findByIdAndDelete(req.params.id);

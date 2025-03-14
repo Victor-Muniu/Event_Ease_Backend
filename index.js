@@ -2,17 +2,18 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const dotenv = require("dotenv");
+const StaffRouter = require("./router/staffRouter");
+const StaffLogin = require('./auth/staffLogin')
+const VenueRouter = require('./router/venueRouter')
+const EquipmentRouter = require('./router/equipmentRouter')
+const EventOrganizer = require('./router/eventOrganizerRouter')
+const eventOrganizerLogin = require('./auth/eventOrganizerLogin')
+const VenueRequest = require('./router/venueRequestRouter')
+const VenueRequestResponse = require('./router/venueResponseRouter')
+const BookingRouter = require('./router/bookingRouter')
+dotenv.config();
 
-const StaffRouter = require("./routes/staffRouter");
-const EventGroundRouter = require("./routes/eventGroundsRouter");
-const EventOrganizerRouter = require("./routes/eventOrganizerRouter")
-const LoginRouter = require('./routes/login')
-const EventsRouter = require('./routes/eventsRouter')
-const UserRouter = require('./routes/userRouter')
-const EventsGroundsRequest = require('./routes/eventGroundRequest')
-const EventResponseRouter = require('./routes/eventsResponseRouter')
-const TicketsRouter = require('./routes/ticketsRouter')
-const depositRouter = require('./routes/depositRouter')
 const app = express();
 app.use(express.json());
 app.use(
@@ -24,22 +25,21 @@ app.use(
 app.use(cookieParser());
 
 mongoose
-  .connect(
-    "mongodb+srv://victornjoroge4971:pnlvmn4971@nexacorp.vthn4.mongodb.net/eventEase"
-  )
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB successfully."))
   .catch((error) => console.error("Error connecting to MongoDB:", error));
 
 app.use("", StaffRouter);
-app.use("", EventGroundRouter)
-app.use("", EventOrganizerRouter)
-app.use("", LoginRouter)
-app.use("",EventsRouter)
-app.use("", UserRouter)
-app.use("", EventsGroundsRequest)
-app.use("", EventResponseRouter)
-app.use("", TicketsRouter)
-app.use("", depositRouter)
+app.use("",StaffLogin)
+app.use("", VenueRouter)
+app.use("", EquipmentRouter)
+app.use("", EventOrganizer)
+app.use("", eventOrganizerLogin)
+app.use("", VenueRequest)
+app.use("", VenueRequestResponse)
+app.use("", BookingRouter);
+
+
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

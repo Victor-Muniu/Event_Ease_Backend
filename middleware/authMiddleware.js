@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const EventOrganizer = require('../models/eventOrganizer'); 
+const EventOrganizer = require('../modules/eventOrganizer'); 
 
 module.exports = async (req, res, next) => {
     try {
