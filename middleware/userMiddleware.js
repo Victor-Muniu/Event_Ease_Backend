@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require("../models/user")
+const User = require("../modules/user")
 
 module.exports = async (req, res, next) => {
     try {
@@ -11,12 +11,12 @@ module.exports = async (req, res, next) => {
 
         const decoded = jwt.verify(token, 'your_secret_key'); 
         
-        const event_organizer = await User.findOne({ email: decoded.user.email });
-        if (!event_organizer) {
+        const user = await User.findOne({ email: decoded.user.email });
+        if (!user) {
             return res.status(401).json({ message: 'Invalid user. Unauthorized.' });
         }
 
-        req.user = event_organizer;
+        req.user = user;
         next();  
     } catch (err) {
         console.error('Token verification failed:', err.message);

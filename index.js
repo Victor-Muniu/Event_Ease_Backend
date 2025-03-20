@@ -12,6 +12,11 @@ const eventOrganizerLogin = require('./auth/eventOrganizerLogin')
 const VenueRequest = require('./router/venueRequestRouter')
 const VenueRequestResponse = require('./router/venueResponseRouter')
 const BookingRouter = require('./router/bookingRouter')
+const EventRouter = require("./router/eventRouter")
+const UserRouter = require("./router/userRouter")
+const LoginUser = require("./auth/userLogin")
+const updateEventStatuses = require("./utils/eventStatusUpdater");
+
 dotenv.config();
 
 const app = express();
@@ -38,8 +43,10 @@ app.use("", eventOrganizerLogin)
 app.use("", VenueRequest)
 app.use("", VenueRequestResponse)
 app.use("", BookingRouter);
-
-
+app.use("", EventRouter)
+app.use("", UserRouter)
+app.use("", LoginUser)
+updateEventStatuses();
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
