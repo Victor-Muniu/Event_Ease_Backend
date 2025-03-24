@@ -66,8 +66,6 @@ router.post("/change_password", authMiddleware, async (req, res) => {
 
     user.password = newPassword;
     await user.save();
-
-    // Log the user out after password change
     res.clearCookie("token");
     res.status(200).json({ message: "Password changed successfully. Please log in again." });
   } catch (err) {
