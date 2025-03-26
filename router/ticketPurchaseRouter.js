@@ -84,22 +84,22 @@ router.get("/ticket_purchase", async (req, res) => {
   try {
     const payments = await Payment.find()
         .populate({
-            path: "response", // Populate ticket details
+            path: "response", 
             populate: { 
-                path: "eventId", // Populate event details
+                path: "eventId", 
                 populate: { 
-                    path: "bookingId", // Populate booking details inside eventId
+                    path: "bookingId", 
                     populate: [
-                        { path: "organizer" },  // Populate organizer details
+                        { path: "organizer" }, 
                         { 
-                            path: "response", // Populate response inside bookingId
-                            populate: { path: "venueRequest" } // Populate venueRequest inside response
+                            path: "response", 
+                            populate: { path: "venueRequest" } 
                         }
                     ]
                 }
             } 
         })
-        .populate("attendeeId"); // Populate attendee details
+        .populate("attendeeId"); 
 
     res.status(200).json({ message: "Payments retrieved successfully", payments });
 } catch (error) {
