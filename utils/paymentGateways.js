@@ -75,7 +75,7 @@ async function handleMpesaCallback(req, res) {
     }
 
     if (ResultCode === 0) {
-      // ✅ Payment was successful
+      
       const amount = CallbackMetadata.Item.find(item => item.Name === "Amount")?.Value || 0;
       const mpesaReceipt = CallbackMetadata.Item.find(item => item.Name === "MpesaReceiptNumber")?.Value || "";
       const transactionDate = CallbackMetadata.Item.find(item => item.Name === "TransactionDate")?.Value || "";
@@ -85,7 +85,7 @@ async function handleMpesaCallback(req, res) {
       booking.paymentDetails.push({
         amount,
         paymentMethod: "M-Pesa",
-        transactionId: mpesaReceipt, // ✅ Store the actual M-Pesa receipt number
+        transactionId: mpesaReceipt,
         phoneNumber, // ✅ Store phone number used for payment
         transactionDate: new Date(
           transactionDate.toString().replace(
@@ -125,6 +125,7 @@ async function handleMpesaCallback(req, res) {
     return res.status(500).json({ message: "Server error" });
   }
 }
+
 
 
 

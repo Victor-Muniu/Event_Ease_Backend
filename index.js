@@ -16,6 +16,7 @@ const EventRouter = require("./router/eventRouter")
 const UserRouter = require("./router/userRouter")
 const LoginUser = require("./auth/userLogin")
 const TicketRouter = require("./router/ticketRouter")
+const TicketPurchase = require("./router/ticketPurchaseRouter")
 const updateEventStatuses = require("./utils/eventStatusUpdater");
 
 dotenv.config();
@@ -48,6 +49,7 @@ app.use("", EventRouter)
 app.use("", UserRouter)
 app.use("", LoginUser)
 app.use("", TicketRouter)
+app.use("", TicketPurchase)
 updateEventStatuses();
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {

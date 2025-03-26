@@ -9,13 +9,16 @@ const ticketSchema = new mongoose.Schema({
     },
     categories: {
         VVIP: {
-            count: { type: Number, required: true, min: 0 }
+            count: { type: Number, required: true, min: 0 },
+            price: { type: Number, required: true, min: 0 } 
         },
         VIP: {
-            count: { type: Number, required: true, min: 0 }
+            count: { type: Number, required: true, min: 0 },
+            price: { type: Number, required: true, min: 0 } 
         },
         Regular: {
-            count: { type: Number, required: true, min: 0 }
+            count: { type: Number, required: true, min: 0 },
+            price: { type: Number, required: true, min: 0 } 
         }
     },
     totalTickets: { type: Number, required: true }

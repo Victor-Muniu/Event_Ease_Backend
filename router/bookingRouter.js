@@ -72,8 +72,8 @@ router.post("/bookings/:id/pay", authMiddleware, async (req, res) => {
 
 router.post("/bookings/:id/paypal-capture", authMiddleware, async (req, res) => {
     try {
-        const { id } = req.params; // Booking ID
-        const { orderId } = req.body; // PayPal Order ID
+        const { id } = req.params; 
+        const { orderId } = req.body; 
         
         if (!orderId) return res.status(400).json({ message: "PayPal Order ID is required" });
 
@@ -101,10 +101,8 @@ router.post("/bookings/:id/paypal-capture", authMiddleware, async (req, res) => 
             description: "Payment captured via PayPal",
         });
 
-        // Update booking status
         booking.status = booking.amountPaid >= booking.totalAmount ? "Confirmed" : "Tentative";
 
-        // Save the updated booking
         await booking.save();
 
         res.status(200).json({ message: "PayPal payment captured successfully", booking });
@@ -114,9 +112,7 @@ router.post("/bookings/:id/paypal-capture", authMiddleware, async (req, res) => 
     }
 });
 
-
-
-router.post("/payments/callback", handleMpesaCallback);
+router.post('/payments/callback', handleMpesaCallback);
 
 router.post("/payments/paypal-webhook", async (req, res) => {
     try {
