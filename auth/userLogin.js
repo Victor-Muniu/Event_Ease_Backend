@@ -76,4 +76,14 @@ router.post("/login-user", async (req, res) => {
     }
   });
 
+  router.post("/logout-user", (req, res) => {
+    try {
+        res.clearCookie("token");
+        res.status(200).json({ message: "User logged out successfully" });
+    } catch (err) {
+        console.error("Logout error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+});
+
   module.exports = router;
